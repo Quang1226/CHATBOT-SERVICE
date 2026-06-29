@@ -47,6 +47,13 @@ def send_message(request: chat_schema.MessageCreate, db: Session = Depends(get_d
         conversation_id=conv.id
     )
     
+    # CƠ CHẾ BẮT TÍN HIỆU VIP TỪ AI (Nâng cấp độ nhạy)
+    if "HOT_LEAD" in bot_reply_text:
+        conv.status = "HOT" # Cập nhật trạng thái phiên chat thành HOT
+        db.commit()
+        # Dọn dẹp sạch sẽ chuỗi thừa dù AI có sinh ra ngoặc vuông hay không
+        bot_reply_text = bot_reply_text.replace("[HOT_LEAD]", "").replace("HOT_LEAD", "").strip()
+    
     # 4. Lưu câu trả lời của Bot vào DB
     bot_msg = crud_chat.save_message(db, conv.id, sender="bot", text=bot_reply_text)
     

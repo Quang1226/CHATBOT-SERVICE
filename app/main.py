@@ -4,6 +4,7 @@ from app.core.database import engine, Base, SessionLocal
 from app.models import conversation, message, faq, user as user_model
 from app.core.security import get_password_hash
 from app.api.v1.api import api_router
+from app.core.config import settings
 
 # Tự động tạo bảng nếu chưa có
 Base.metadata.create_all(bind=engine)
@@ -15,7 +16,7 @@ try:
     if not admin_exist:
         admin_user = user_model.User(
             username="admin_vnj",
-            hashed_password=get_password_hash("vnj@2026"), # Mật khẩu đăng nhập
+            hashed_password=get_password_hash(settings.ADMIN_DEFAULT_PASSWORD), # Mật khẩu đăng nhập
             is_active=True
         )
         db.add(admin_user)

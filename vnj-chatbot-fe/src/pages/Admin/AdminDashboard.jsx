@@ -19,8 +19,17 @@ const AdminDashboard = ({ onLogout }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
+        // Tải dữ liệu lần đầu tiên
         fetchFAQs();
         fetchLeads();
+
+        // Thiết lập tự động tải lại (Polling) mỗi 5 giây (5000ms)
+        const intervalId = setInterval(() => {
+            fetchLeads(); // Chỉ cập nhật danh sách Leads để tránh tải lại toàn bộ trang
+        }, 5000);
+
+        // Dọn dẹp interval khi chuyển trang hoặc đăng xuất để tránh lỗi Memory Leak
+        return () => clearInterval(intervalId);
     }, []);
 
     const fetchFAQs = async () => {
@@ -146,7 +155,15 @@ const AdminDashboard = ({ onLogout }) => {
                         <tbody>
                             {leads.map(lead => (
                                 <tr key={lead.id} style={styles.tr}>
-                                    <td style={styles.td}>#{lead.id}</td>
+                                    <td style={styles.td}>
+                                        #{lead.id}
+                                        {/* Nếu trạng thái là HOT, in ra nhãn VIP màu đỏ */}
+                                        {lead.status === 'HOT' && (
+                                            <span style={{ marginLeft: '10px', backgroundColor: '#dc3545', color: 'white', padding: '3px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>
+                                                🔥 VIP (Gọi ngay)
+                                            </span>
+                                        )}
+                                    </td>
                                     <td style={{ ...styles.td, color: '#28a745', fontWeight: 'bold' }}>{lead.customer_phone}</td>
                                     <td style={styles.td}>
                                         <button style={styles.viewBtn} onClick={() => openChatHistory(lead.id)}>Xem Nội dung Chat</button>

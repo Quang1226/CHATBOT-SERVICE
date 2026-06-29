@@ -536,21 +536,50 @@ npm run dev
 
 ---
 
-## 14. Ghi chú cấu hình quan trọng
+## 14. Thiết lập biến môi trường (Bắt buộc)
 
-- FE hiện có biến cố định `API_BASE_URL = http://127.0.0.1:8000/api/v1` trong: `vnj-chatbot-fe/src/services/api.js`.
-  - Nếu bạn đổi port/host, cần sửa file này hoặc thêm cơ chế env.
-- BE hiện đang hard-code một số secrets (ví dụ `GROQ_API_KEY`, `SECRET_KEY`, password admin mặc định). Nếu đưa lên production, nên chuyển sang `.env`.
+### 14.1. Backend (FastAPI)
+Backend đọc `.env` tại thư mục gốc (file `.env` đặt cạnh `requirements.txt`).
+
+Các biến quan trọng:
+- `DATABASE_URL` (mặc định: `sqlite:///./chatbot_vnj.db`)
+- `SECRET_KEY` (mặc định: `VNJ_SECRET_KEY_SIEUMAT_2026`)
+- `GROQ_API_KEY` (**bắt buộc** để gọi Groq)
+- `ADMIN_DEFAULT_PASSWORD` (mặc định: `vnj@2026`)
+
+Ví dụ:
+```bash
+GROQ_API_KEY=your_groq_api_key
+SECRET_KEY=your_secret_key
+ADMIN_DEFAULT_PASSWORD=your_admin_password
+```
+
+### 14.2. Frontend (React/Vite)
+Frontend đọc base URL qua biến:
+- `VITE_API_BASE_URL` (tuỳ chọn). Nếu không có, mặc định là `http://127.0.0.1:8000/api/v1`.
+
+Ví dụ `.env` trong `vnj-chatbot-fe/`:
+```bash
+VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
+```
 
 ---
 
-## 15. Checklist để tiếp tục hoàn thiện (gợi ý)
+## 15. Ghi chú & hạn chế hiện tại
 
-1. **Bảo mật**: chuyển secret/key/password sang `.env` + rotate key.
-2. **Fix history**: đảm bảo lấy đúng tin nhắn gần nhất cho prompt.
-3. **Cải tiến RAG**: scoring theo mức độ match, chuẩn hóa keywords.
-4. **Config cho môi trường**: Vite env cho `API_BASE_URL`.
-5. **Logging**: log lỗi Groq/DB rõ request id.
+- **Một số secret đang có giá trị mặc định** trong code (nhưng đã được ưu tiên override bởi `.env`). Khi đưa production: cần đặt `.env` đầy đủ và thay giá trị default.
+- **RAG keyword match**: hiện dùng rule regex khớp từ khóa (cần đảm bảo field `keywords` nhập theo format `keyword1, keyword2, ...`).
+- **History hội thoại**: chatbot_engine đang lấy lịch sử theo `conversation_id` gần nhất (gần đây hơn sẽ giúp bot trả lời tốt hơn).
+
+---
+
+## 16. Checklist để tiếp tục hoàn thiện (gợi ý)
+
+1. **Bảo mật**: loại bỏ/giảm giá trị default cho `SECRET_KEY`, password admin; bắt buộc `.env`.
+2. **Fix chất lượng RAG**: chuẩn hoá keywords, cân nhắc scoring thay vì chỉ “match có/không”.
+3. **Cải tiến prompt**: thêm cấu trúc output rõ ràng (tránh sinh thừa tag như `[HOT_LEAD]`).
+4. **Config môi trường**: chuẩn hoá `API_BASE_URL` bằng env thay vì hard-code.
+5. **Observability**: thêm request id/log correlation cho DB + Groq.
 
 
 

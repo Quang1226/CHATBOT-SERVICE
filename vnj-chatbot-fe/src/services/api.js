@@ -21,6 +21,11 @@ apiClient.interceptors.response.use(
             localStorage.removeItem('vnj_admin_token'); // Xóa chìa khóa hỏng
             window.location.href = '/admin'; // Đá văng ra ngoài trang Login
         }
+
+        if (error.response && error.response.status === 429) {
+            alert("Bạn đang gửi tin nhắn quá nhanh! Vui lòng chờ vài giây rồi thử lại nhé.");
+        }
+
         return Promise.reject(error);
     }
 );

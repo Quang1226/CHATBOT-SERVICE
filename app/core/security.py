@@ -3,8 +3,11 @@ from datetime import datetime, timedelta
 from jose import jwt
 from app.core.config import settings
 
-# Sử dụng thuật toán bcrypt để băm mật khẩu
+# Cấu hình băm mật khẩu bằng bcrypt.
+# - verify_password: kiểm tra mật khẩu đầu vào với hashed_password lưu trong DB
+# - get_password_hash: dùng khi tạo/seed/tạo mới user
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)

@@ -1,128 +1,290 @@
-/* Vị trí cố định ở góc dưới bên phải cho toàn bộ Widget */
+/* ====================================================
+   1. BIẾN & CẤU HÌNH CHUNG
+   ==================================================== */
 .chat-widget-container {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 25px;
+    right: 25px;
     z-index: 9999;
     font-family: Arial, sans-serif;
 }
 
-/* 1. HIỆU ỨNG BONG BÓNG CHAT: Nhịp thở (Pulse) để thu hút sự chú ý */
-@keyframes pulse {
-    0% {
-        transform: scale(1);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    50% {
-        transform: scale(1.05);
-        box-shadow: 0 8px 20px rgba(0, 86, 179, 0.4);
-    }
-
-    100% {
-        transform: scale(1);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-}
-
-.chat-bubble-btn {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background-color: #0056b3;
-    color: white;
-    border: none;
-    font-size: 24px;
+/* ====================================================
+   2. TRẠNG THÁI ĐÓNG: AVATAR & BÓNG THOẠI
+   ==================================================== */
+.chat-trigger-container {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    align-items: flex-end;
     cursor: pointer;
-    /* Kích hoạt hiệu ứng nhịp thở vô tận */
-    animation: pulse 2s infinite ease-in-out;
-    transition: transform 0.2s, background-color 0.2s;
 }
 
-.chat-bubble-btn:hover {
-    /* Tắt nhịp thở và phóng to nhẹ khi chuột chỉ vào */
-    animation: none;
+.chat-greeting-bubble {
+    background-color: #ffffff;
+    color: #1e293b;
+    padding: 12px 18px;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    margin-bottom: 15px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+    position: relative;
+    max-width: 260px;
+    text-align: center;
+    border: 1px solid #f1f5f9;
+    animation: pulseSoft 2s infinite;
+}
+
+.chat-greeting-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    right: 30px;
+    border-width: 8px 8px 0;
+    border-style: solid;
+    border-color: #ffffff transparent transparent transparent;
+    display: block;
+    width: 0;
+}
+
+.chat-avatar-wrapper {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    background-color: #e0f2fe;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 6px 16px rgba(14, 165, 233, 0.3);
+    animation: floatUpDown 3s ease-in-out infinite;
+    transition: transform 0.3s ease;
+}
+
+.chat-avatar-wrapper:hover {
     transform: scale(1.1);
-    background-color: #004494;
 }
 
-/* 2. HIỆU ỨNG MỞ KHUNG CHAT: Trượt từ dưới lên và rõ dần */
-@keyframes slideFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.95);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+.chat-avatar-img {
+    width: 45px;
+    height: 45px;
+    object-fit: contain;
 }
 
+/* ====================================================
+   3. TRẠNG THÁI MỞ: KHUNG CHAT TỔNG THỂ
+   ==================================================== */
 .chat-window {
     width: 350px;
     height: 500px;
     background-color: white;
-    border-radius: 12px;
+    border-radius: 16px;
     box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     position: absolute;
     bottom: 0;
     right: 0;
-    /* Kích hoạt hiệu ứng trượt lên khi xuất hiện */
+
+    /* Hiệu ứng bật lên kiểu lò xo (Spring pop-out) */
     transform-origin: bottom right;
-    animation: slideFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    /* 3. HIỆU ỨNG THU NHỎ: Mượt mà khi thay đổi chiều cao */
-    transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: chatWindowPopIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+
+    /* Hiệu ứng thu nhỏ mượt mà */
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.3s ease;
 }
 
-/* Trạng thái thu nhỏ */
+/* KHI BỊ THU NHỎ (Chỉ hiện mỗi Header) */
 .chat-window.minimized {
-    height: 52px;
+    height: 65px !important;
+    min-height: 65px !important;
+    overflow: hidden;
+    /* Giấu toàn bộ phần Body và Footer đi */
 }
 
-/* Các thành phần bên trong (Giữ nguyên) */
+/* ====================================================
+   4. THÀNH PHẦN KHUNG CHAT: HEADER
+   ==================================================== */
 .chat-header {
-    background-color: #0056b3;
+    background-color: #2563eb;
     color: white;
-    padding: 15px;
+    padding: 0 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-weight: bold;
+    height: 65px;
+    /* Ép cứng chiều cao bảo vệ giao diện */
+    min-height: 65px;
+    box-sizing: border-box;
+    border-radius: 16px 16px 0 0;
 }
 
-.header-controls button {
+.chat-header h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    white-space: nowrap;
+    /* Cấm chữ rớt dòng */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Các nút điều khiển trên Header */
+.action-btn {
     background: none;
     border: none;
     color: white;
+    font-size: 14px;
     cursor: pointer;
-    font-size: 16px;
-    margin-left: 10px;
-    transition: opacity 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
 }
 
-.header-controls button:hover {
-    opacity: 0.8;
-    transform: scale(1.2);
+.action-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
+.icon-arrow {
+    display: inline-block;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.icon-arrow.rotated {
+    transform: rotate(180deg);
+}
+
+/* ====================================================
+   5. THÀNH PHẦN KHUNG CHAT: BODY & FOOTER
+   ==================================================== */
 .chat-body {
     flex: 1;
     padding: 15px;
     overflow-y: auto;
-    background-color: #f9f9f9;
+    background-color: #f8fafc;
     display: flex;
     flex-direction: column;
+    gap: 12px;
+}
+
+.message {
+    max-width: 80%;
+    padding: 10px 15px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.4;
+    animation: messagePop 0.3s ease-out forwards;
+}
+
+.message.bot {
+    background-color: #e2e8f0;
+    color: #334155;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+}
+
+.message.user {
+    background-color: #2563eb;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+}
+
+.chat-footer {
+    padding: 12px;
+    background-color: white;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
     gap: 10px;
 }
 
-/* 4. HIỆU ỨNG TIN NHẮN: Nổi lên nhẹ nhàng khi vừa được gửi */
+.chat-footer input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #cbd5e1;
+    border-radius: 20px;
+    outline: none;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.chat-footer input:focus {
+    border-color: #2563eb;
+}
+
+.chat-footer button {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.chat-footer button:hover {
+    background-color: #1d4ed8;
+}
+
+.chat-footer button:active {
+    transform: scale(0.95);
+}
+
+/* ====================================================
+   6. THƯ VIỆN HIỆU ỨNG (KEYFRAMES)
+   ==================================================== */
+@keyframes floatUpDown {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes pulseSoft {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes chatWindowPopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.5) translateY(50px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
 @keyframes messagePop {
     from {
         opacity: 0;
@@ -133,67 +295,4 @@
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-.message {
-    max-width: 80%;
-    padding: 10px 15px;
-    border-radius: 15px;
-    font-size: 14px;
-    line-height: 1.4;
-    animation: messagePop 0.3s ease-out forwards;
-}
-
-.message.bot {
-    background-color: #e9ecef;
-    color: #333;
-    align-self: flex-start;
-    border-bottom-left-radius: 2px;
-}
-
-.message.user {
-    background-color: #0056b3;
-    color: white;
-    align-self: flex-end;
-    border-bottom-right-radius: 2px;
-}
-
-.chat-footer {
-    padding: 10px;
-    background-color: white;
-    border-top: 1px solid #ddd;
-    display: flex;
-    gap: 10px;
-}
-
-.chat-footer input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 20px;
-    outline: none;
-    transition: border-color 0.2s;
-}
-
-.chat-footer input:focus {
-    border-color: #0056b3;
-}
-
-.chat-footer button {
-    background-color: #0056b3;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.1s;
-}
-
-.chat-footer button:hover {
-    background-color: #004494;
-}
-
-.chat-footer button:active {
-    transform: scale(0.95);
 }

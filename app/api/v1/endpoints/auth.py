@@ -9,8 +9,11 @@ router = APIRouter()
 
 @router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    """API xác thực tài khoản Admin và trả về chìa khóa JWT Token"""
-    # 1. Tìm user trong DB
+    """Xác thực tài khoản Admin và trả về JWT Token để Frontend lưu trữ.
+
+    API này nhận username/password thông qua OAuth2PasswordRequestForm.
+    """
+    # 1) Tìm user trong DB theo username
     user = db.query(User).filter(User.username == form_data.username).first()
     if not user:
         raise HTTPException(

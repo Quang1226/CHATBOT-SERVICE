@@ -1,10 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from app.core.database import engine, Base, SessionLocal
 from app.models import conversation, message, faq, user as user_model
 from app.core.security import get_password_hash
 from app.api.v1.api import api_router
 from app.core.config import settings
+from app.core.limiter import limiter
 
 # Tự động tạo bảng nếu chưa có
 Base.metadata.create_all(bind=engine)
@@ -27,7 +30,12 @@ finally:
 
 app = FastAPI(title="VNJ Chatbot API", version="1.0.0")
 
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 origins = [
+    "http://localhost",         
+    "http://127.0.0.1",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:3000",

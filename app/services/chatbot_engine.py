@@ -1,26 +1,26 @@
 import re
 import logging
-from openai import OpenAI
+from openai import AsyncOpenAI
 from app.core.config import settings
 from app.models.faq import FAQ
 from app.models.message import Message 
 from sqlalchemy.orm import Session
 
-# ================= CẤU HÌNH LOGGING =================
-# Thiết lập bộ quan sát hệ thống (In ra Console với format chuyên nghiệp)
+# Thiết lập logging cho service chatbot.
+# Mục tiêu: ghi log theo format thống nhất để dễ debug luồng RAG và gọi LLM.
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - [%(levelname)s] - %(name)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
-# ====================================================
 
-client = OpenAI(
+
+client = AsyncOpenAI(
     api_key=settings.GROQ_API_KEY, 
     base_url="https://api.groq.com/openai/v1"
 )
 
-def generate_bot_response(message_text: str, db: Session, conversation_id: int = None) -> str:
+async def generate_bot_response(message_text: str, db: Session, conversation_id: int = None) -> str:
     # 1. TRUY XUẤT RAG (ĐÃ NÂNG CẤP THUẬT TOÁN TÌM KIẾM CHÍNH XÁC)
     logger.info(f"Đang xử lý tin nhắn: '{message_text}' cho Session ID: {conversation_id}")
     
@@ -62,9 +62,6 @@ def generate_bot_response(message_text: str, db: Session, conversation_id: int =
     4. CẤM LẢM NHẢM: Không giải thích nội tâm, không dùng ký tự sao (*). Dùng dấu gạch ngang (-) để liệt kê.
     5. XỬ LÝ SAU KHI CÓ SĐT: Nếu khách đã cho SĐT/Email, CHỈ CẦN cảm ơn ngắn gọn và báo chuyên viên sẽ liên hệ. TUYỆT ĐỐI KHÔNG nhại lại thông tin (Tên:..., SĐT:...).
     
-    [ĐÁNH GIÁ KHÁCH HÀNG TIỀM NĂNG]:
-    Nếu khách ĐÃ ĐỂ LẠI Số điện thoại/Email, BẮT BUỘC chèn đúng chữ HOT_LEAD vào cuối cùng của câu trả lời.
-    
     [CƠ SỞ TRI THỨC VNJ]:
     {context_text if context_text else "Hãy tư vấn dựa trên kiến thức công nghệ chung."}
     """
@@ -83,7 +80,7 @@ def generate_bot_response(message_text: str, db: Session, conversation_id: int =
     # 4. GỌI GROQ CÓ BẮT LỖI LOGGING
     try:
         logger.info("Đang gửi Request tới bộ não Groq AI...")
-        response = client.chat.completions.create(
+        response = await client.chat.completions.create(
             model="llama-3.1-8b-instant", 
             messages=api_messages,
             max_tokens=600, 

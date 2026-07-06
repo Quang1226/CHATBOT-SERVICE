@@ -1,12 +1,13 @@
-
-const ChatHeader = ({ onClose, onMinimize }) => {
+const ChatHeader = ({ onClose, onMinimize, isMinimized }) => {
     return (
         <div className="chat-header">
-            <span>Hỗ trợ trực tuyến VNJ</span>
-            <div className="header-controls">
-                {/* Gọi hàm onMinimize khi bấm nút gập */}
-                <button onClick={onMinimize}>▼</button>
-                <button onClick={onClose}>✖</button>
+            <h4>Hỗ trợ trực tuyến VNJ</h4>
+            <div className="header-actions">
+                <button onClick={onMinimize} className="action-btn">
+                    {/* Thẻ span này sẽ nhận class 'rotated' nếu isMinimized = true */}
+                    <span className={`icon-arrow ${isMinimized ? 'rotated' : ''}`}>▼</span>
+                </button>
+                <button onClick={onClose} className="action-btn">✖</button>
             </div>
         </div>
     );

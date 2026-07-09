@@ -40,6 +40,7 @@ origins = [
     "http://127.0.0.1:5173",
     "http://localhost:3000",
     "https://www.vnj-ss.com",
+    "https://chatbot-servicefe.vercel.app",
 ]
 
 app.add_middleware(

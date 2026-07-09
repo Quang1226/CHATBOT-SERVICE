@@ -150,11 +150,13 @@ vnj-chatbot-fe/
 
 ### 4.2. `app/core/config.py`
 
-**Settings:****
+**Settings:**
 - `DATABASE_URL` mặc định: `sqlite:///./chatbot_vnj.db`
 - `SECRET_KEY` mặc định: `VNJ_SECRET_KEY_SIEUMAT_2026`
-- `GROQ_API_KEY`: **đang hard-code** trong code
+- `GROQ_API_KEY`: lấy từ biến môi trường `GROQ_API_KEY` (mặc định chuỗi rỗng)
+- `ADMIN_DEFAULT_PASSWORD`: lấy từ biến môi trường `ADMIN_DEFAULT_PASSWORD` (mặc định `vnj@2026`)
 - `ALGORITHM = "HS256"`
+
 
 ---
 
@@ -380,16 +382,7 @@ Admin:
 
 ## 11. Lỗi tiềm ẩn & lỗi hiện hữu (quan trọng)
 
-### 11.1. Lỗi/bất cập bảo mật (nghiêm trọng)
-1. `GROQ_API_KEY` **hard-code** trong `app/core/config.py`
-2. `SECRET_KEY` có giá trị mặc định trong code
-3. Seed admin password hard-code trong `app/main.py`
-
-**Hậu quả:** nếu lộ repo → có thể bị dùng để gọi API và tạo token JWT.
-
----
-
-### 11.2. Lỗi logic history hội thoại
+### 11.1. Lỗi logic history hội thoại
 Trong `chatbot_engine.generate_bot_response()`:
 - code query:
   - `order_by(Message.id.asc()).limit(4)`
@@ -399,26 +392,55 @@ Trong `chatbot_engine.generate_bot_response()`:
 
 ---
 
-### 11.3. RAG keyword match quá thô
+### 11.2. RAG keyword match quá thô
 - chỉ check `kw in message_lower`
 - không normalize tốt, phụ thuộc cách admin nhập keywords
 - không dùng `question_intent`
 
 ---
 
-### 11.4. Potential mismatch role khi đổ history
+### 11.3. Potential mismatch role khi đổ history
 - mapping role: `msg.sender == "user"` → user, còn lại assistant
 - nếu sender stored khác giá trị chuẩn → vai trò role sai.
 
 ---
 
-### 11.5. Cấu hình environment
+### 11.4. Cấu hình environment
 - Frontend dùng API URL cố định `http://127.0.0.1:8000`
 - Khi deploy production cần thay bằng env var.
 
 ---
 
 ## 12. Cách chạy dự án
+
+---
+
+## 12.0. Chạy bằng Docker (khuyến nghị)
+
+### 12.0.1. Chuẩn bị
+- Đảm bảo đã có Docker Desktop / Docker Engine.
+- Tạo file `.env` ở thư mục gốc (nơi có `docker-compose.yml`).
+
+> Các biến môi trường backend dùng trong Docker (theo code):
+> - `GROQ_API_KEY` (**bắt buộc**)
+> - `DATABASE_URL` (mặc định trong code: `sqlite:///./chatbot_vnj.db`)
+> - `SECRET_KEY` (mặc định trong code)
+> - `ADMIN_DEFAULT_PASSWORD` (mặc định trong code)
+
+### 12.0.2. Chạy toàn bộ hệ thống
+Trong thư mục gốc của project:
+
+```bash
+docker compose up --build -d
+```
+
+- Frontend (React) chạy tại: `http://localhost/` (Nginx trên port 80)
+- Backend (FastAPI) chạy tại: `http://localhost:8000/api/v1`
+
+### 12.0.3. Dừng hệ thống
+```bash
+docker compose down
+```
 
 ---
 
@@ -447,7 +469,8 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 #### (Tuỳ chọn) Kiểm tra nhanh
 - Mở trình duyệt: `http://127.0.0.1:8000/`
-- Hoặc gọi API root: `GET http://127.0.0.1:8000/api/v1/...`
+- Hoặc gọi một endpoint API để kiểm tra: `GET http://127.0.0.1:8000/api/v1/...`
+
 
 ---
 
@@ -562,24 +585,6 @@ Ví dụ `.env` trong `vnj-chatbot-fe/`:
 ```bash
 VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
 ```
-
----
-
-## 15. Ghi chú & hạn chế hiện tại
-
-- **Một số secret đang có giá trị mặc định** trong code (nhưng đã được ưu tiên override bởi `.env`). Khi đưa production: cần đặt `.env` đầy đủ và thay giá trị default.
-- **RAG keyword match**: hiện dùng rule regex khớp từ khóa (cần đảm bảo field `keywords` nhập theo format `keyword1, keyword2, ...`).
-- **History hội thoại**: chatbot_engine đang lấy lịch sử theo `conversation_id` gần nhất (gần đây hơn sẽ giúp bot trả lời tốt hơn).
-
----
-
-## 16. Checklist để tiếp tục hoàn thiện (gợi ý)
-
-1. **Bảo mật**: loại bỏ/giảm giá trị default cho `SECRET_KEY`, password admin; bắt buộc `.env`.
-2. **Fix chất lượng RAG**: chuẩn hoá keywords, cân nhắc scoring thay vì chỉ “match có/không”.
-3. **Cải tiến prompt**: thêm cấu trúc output rõ ràng (tránh sinh thừa tag như `[HOT_LEAD]`).
-4. **Config môi trường**: chuẩn hoá `API_BASE_URL` bằng env thay vì hard-code.
-5. **Observability**: thêm request id/log correlation cho DB + Groq.
 
 
 

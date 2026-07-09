@@ -7,7 +7,6 @@ import AdminLogin from './pages/Admin/AdminLogin';
 // Trang chủ giả lập của VNJ (Chứa Chatbot)
 const HomePage = () => (
     <div className="app-container">
-        <h1 style={{ padding: '20px', fontFamily: 'sans-serif' }}>Website Công ty TNHH Công nghệ VNJ</h1>
         <ChatWidget />
     </div>
 );

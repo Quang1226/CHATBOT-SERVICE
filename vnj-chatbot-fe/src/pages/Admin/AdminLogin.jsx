@@ -18,7 +18,16 @@ const AdminLogin = ({ onLoginSuccess }) => {
             // Báo cáo đăng nhập thành công
             onLoginSuccess();
         } catch (err) {
-            setError('Tài khoản hoặc mật khẩu không chính xác!');
+            // In thẳng lỗi ra bảng Console (F12) để chúng ta xem
+            console.error("Lỗi chi tiết:", err.response || err);
+
+            // Phân loại lỗi để hiển thị ra màn hình
+            if (err.response && err.response.status === 401) {
+                setError('Sai tài khoản hoặc mật khẩu thật rồi!');
+            } else {
+                // Nếu bị lỗi 422 hoặc lỗi khác, nó sẽ in thẳng ra đây
+                setError('Lỗi hệ thống: ' + (err.response?.data?.detail || err.message));
+            }
         }
     };
 
